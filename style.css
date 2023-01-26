@@ -26,16 +26,20 @@ button {
 }
 
 button:hover {
-    background-color: #8d87aa;
-}
-
-button:hover h2 {
     color: #4d0be6;
+    background-color: #8d87aa;
 }
 
 .selected {
     color: #4d0be6;
     background-color: #8d87aa;
+}
+
+#var3Btns button {
+    margin-top: 50px;
+    font-size: 20px;
+    font-weight: 300;
+    padding: 20px;
 }
 
 #matrix {
