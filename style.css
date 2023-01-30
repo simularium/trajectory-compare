@@ -1,7 +1,7 @@
 body {
     font-family: Overpass;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 400;
     color: #d3d3d3;
     background-color: #1e1b25;
 }
@@ -11,14 +11,14 @@ h1 {
     margin-top: 50;
     margin-bottom: 50;
     font-size: 50px;
-    font-weight: 100;
+    font-weight: 200;
     color: #d3d3d3;
 }
 
 button {
     font-family: Overpass;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 400;
     background-color: #1e1b25;
     color: #8d87aa;
     padding: 0px 20px;
@@ -35,10 +35,10 @@ button:hover {
     background-color: #8d87aa;
 }
 
-#var3Btns button {
+#layerBtns button {
     margin-top: 50px;
     font-size: 20px;
-    font-weight: 300;
+    font-weight: 400;
     padding: 20px;
 }
 
@@ -52,7 +52,7 @@ button:hover {
     -webkit-overflow-scrolling: touch;
     margin-top: 20px;
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 600;
     color: #1e1b25;
 }
 
@@ -126,20 +126,14 @@ button:hover {
     height: 250px;
 }
 
-.spatial {
-    visibility: visible;
-    position: relative;
-    top: 0px;
-    left: 0px;
-}
-
-.plotImg {
+.cellImg {
     visibility: hidden;
     position: absolute;
     top: 0px;
     left: 0px;
 }
 
-.show {
+.visible {
+    position: relative;
     visibility: visible;
 }

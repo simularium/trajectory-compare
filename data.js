@@ -14,6 +14,10 @@ var cellData = {
         "c = 1000",
         "c = 10000",
     ],
+    "plotNames" : [
+        "[Plot1]",
+        "[Plot2]",
+    ],
     "cells" : {
         "a = 0" : [
             [
