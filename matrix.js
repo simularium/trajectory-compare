@@ -9,88 +9,105 @@ let visibleImgs = [];
 let spatialImgBtn = null;
 let plotImgBtns = null;
 let layerBtns = null;
-let layerNames = Object.keys(cellData["cells"]);
 
 // page setup
-function dataForCell(layerName, rowIX, colIX) {
-    if (
-        cellData["cells"][layerName].length <= rowIX || 
-        cellData["cells"][layerName][rowIX].length <= colIX
-    ) {
-        return null;
-    }
-    return cellData["cells"][layerName][rowIX][colIX];
-}
-
 function setPageTitle() {
     let title = document.getElementById("title");
     title.innerHTML = cellData["title"];
 }
 
-function createColTitles(nCols, colNames, matrix) {
-    for (let colIX = 0; colIX < nCols; colIX++) {
+function createColTitles(matrix) {
+    let colVariable = cellData["colVariable"];
+    let colValues = cellData["colValues"];
+    for (let colIX = 0; colIX < colValues.length; colIX++) {
         let colTitle = document.createElement("div");
         colTitle.className = "colTitle";
-        colTitle.innerHTML = colNames[colIX];
+        colTitle.innerHTML = colVariable + " = " + colValues[colIX];
         matrix.appendChild(colTitle);
     }
 }
 
-function createRowTitle(rowName, matrix) {
+function createRowTitle(rowIX, matrix) {
     let rowTitle = document.createElement("div");
     rowTitle.className = "rowTitle";
     rowTitle.classList.add("startRow");
     matrix.appendChild(rowTitle);
     let rowTitleTxt = document.createElement("div");
     rowTitleTxt.className = "rowTitleTxt";
-    rowTitleTxt.innerHTML = rowName;
+    let rowVar = cellData["rowVariable"];
+    let rowValues = cellData["rowValues"];
+    rowTitleTxt.innerHTML = rowVar + " = " + rowValues[rowIX];
     rowTitle.appendChild(rowTitleTxt);
 }
 
-function createSpatialImg(data, selected, viewerLink) {
+function getViewerLink(rowIX, colIX, layerIX) {
+    let rowVar = cellData["rowVariable"][0];
+    let rowValues = cellData["rowValues"];
+    let colVar = cellData["colVariable"][0];
+    let colValues = cellData["colValues"];
+    let layerVar = cellData["layerVariable"][0];
+    let layerValues = cellData["layerValues"];
+    return (
+        "https://simularium.allencell.org/viewer?trajUrl=" + 
+        "https://readdy-working-bucket.s3.us-west-2.amazonaws.com/" + 
+        "outputs/" + cellData["filePrefix"] + "_" + 
+        layerVar + "=" + layerValues[layerIX] + "_" + 
+        rowVar + "=" + rowValues[rowIX] + "_" + 
+        colVar + "=" + colValues[colIX] + "_0.h5.simularium"
+    );
+}
+
+function getImgSrc(rowIX, colIX, layerIX, spatialImg) {
+    let rowVar = cellData["rowVariable"][0];
+    let rowValues = cellData["rowValues"];
+    let colVar = cellData["colVariable"][0];
+    let colValues = cellData["colValues"];
+    let layerVar = cellData["layerVariable"][0];
+    let layerValues = cellData["layerValues"];
+    return (
+        "img/" + cellData["filePrefix"] + "/" +
+        (spatialImg ? "spatial/" : "plots/") +
+        layerVar + "=" + layerValues[layerIX] + "_" + 
+        rowVar + "=" + rowValues[rowIX] + "_" + 
+        colVar + "=" + colValues[colIX] + ".jpg"
+    );
+}
+
+function createSpatialImg(rowIX, colIX, layerIX, selected, viewerLink) {
     let spatialImg = document.createElement("img");
-    spatialImg.src = "img/" + data["spatial_img"];
-    spatialImg.className = "cellImg";
+    spatialImg.src = getImgSrc(rowIX, colIX, layerIX, true);
+    spatialImg.className = "spatialImg";
     if (selected) {
-        viewerLink.href = data["viewer_link"];
+        viewerLink.href = getViewerLink(rowIX, colIX, layerIX);
         spatialImg.classList.add("visible");
     }
     viewerLink.appendChild(spatialImg);
     return spatialImg;
 }
 
-function createPlotImg(plotType, data, viewerLink) {
+function createPlotImg(rowIX, colIX, layerIX, viewerLink) {
     let plotImg = document.createElement("img");
-    plotImg.src = "img/" + data["plot_imgs"][plotType];
-    plotImg.className = "plot" + (plotType + 1);
-    plotImg.classList.add("cellImg");
+    plotImg.src = getImgSrc(rowIX, colIX, layerIX, false);
+    plotImg.classList.add("plotImg");
     viewerLink.appendChild(plotImg);
     return plotImg;
 }
 
 function createCellImageLayers(rowIX, colIX, viewerLink) {
-    for (let layerIX = 0; layerIX < layerNames.length; layerIX++) {
-        // get data
-        let layerName = layerNames[layerIX];
-        let data = dataForCell(layerName, rowIX, colIX);
-        if (!data) {
-            continue;
-        }
+    let layerValues = cellData["layerValues"];
+    for (let layerIX = 0; layerIX < layerValues.length; layerIX++) {
         // spatial image
-        let spatialImg = createSpatialImg(data, layerIX === currentLayerIX, viewerLink);
+        let spatialImg = createSpatialImg(
+            rowIX, colIX, layerIX, layerIX === currentLayerIX, viewerLink
+        );
         spatialImgs[rowIX][colIX].push(spatialImg);
         if (layerIX === currentLayerIX)
         {
             visibleImgs.push(spatialImg);
         }
-        // plot images
-        let plotType = 0;
-        plotImgs[rowIX][colIX].push([]);
-        while (data["plot_imgs"].length > plotType) {
-            let plotImg = createPlotImg(plotType, data, viewerLink);
-            plotImgs[rowIX][colIX][layerIX].push(plotImg);
-            plotType++;
-        }
+        // plot image
+        let plotImg = createPlotImg(rowIX, colIX, layerIX, viewerLink);
+        plotImgs[rowIX][colIX].push(plotImg);
     }
 }
 
@@ -110,18 +127,16 @@ function createCell(rowIX, colIX, matrix) {
 
 function createMatrixPage() {
     let matrix = document.getElementById("matrix");
-    let rowNames = cellData["rowNames"];
-    let nRows = rowNames.length;
-    let colNames = cellData["colNames"];
-    let nCols = colNames.length;
     setPageTitle();
-    createColTitles(nCols, colNames, matrix);
-    for (let rowIX = 0; rowIX < nRows; rowIX++) {
+    createColTitles(matrix);
+    let rowValues = cellData["rowValues"];
+    let colValues = cellData["colValues"];
+    for (let rowIX = 0; rowIX < rowValues.length; rowIX++) {
         viewerLinks.push([]);
         plotImgs.push([]);
         spatialImgs.push([]);
-        createRowTitle(rowNames[rowIX], matrix);
-        for (let colIX = 0; colIX < nCols; colIX++) {
+        createRowTitle(rowIX, matrix);
+        for (let colIX = 0; colIX < colValues.length; colIX++) {
             plotImgs[rowIX].push([]);
             spatialImgs[rowIX].push([]);
             let viewerLink = createCell(rowIX, colIX, matrix);
@@ -161,13 +176,15 @@ function createPlotImgBtns(handlers) {
 function createLayerBtns(handlers) {
     let layerBtnsDiv = document.getElementById("layerBtns");
     let result = [];
-    for (let layerIX = 0; layerIX < layerNames.length; layerIX++) {
+    let layerVar = cellData["layerVariable"];
+    let layerValues = cellData["layerValues"];
+    for (let layerIX = 0; layerIX < layerValues.length; layerIX++) {
         let layerBtn = document.createElement("button");
         if (layerIX === currentLayerIX) {
             layerBtn.classList.add("selected");
         }
         layerBtn.type = "button";
-        layerBtn.innerHTML = layerNames[layerIX];
+        layerBtn.innerHTML = layerVar + " = " + layerValues[layerIX];
         layerBtn.id = "layerBtn" + (layerIX + 1);
         layerBtn.onclick = handlers[layerIX];
         layerBtnsDiv.appendChild(layerBtn);
@@ -187,26 +204,25 @@ function deselectImgBtns() {
 function hideVisibleImages() {
     for (let imgIX = 0; imgIX < visibleImgs.length; imgIX++) {
         visibleImgs[imgIX].classList.remove("visible");
+        if (selectedPlotIX >= 0) {
+            visibleImgs[imgIX].classList.remove("plot" + (selectedPlotIX + 1));
+        }
     }
     visibleImgs = [];
 }
 
 function showCurrentImgs() {
-    let layerName = layerNames[currentLayerIX];
     for (let rowIX = 0; rowIX < spatialImgs.length; rowIX++) {
         for (let colIX = 0; colIX < spatialImgs[rowIX].length; colIX++) {
-            let data = dataForCell(layerName, rowIX, colIX);
-            if (!data) {
-                continue;
-            }
-            viewerLinks[rowIX][colIX].href = data["viewer_link"];
+            viewerLinks[rowIX][colIX].href = getViewerLink(rowIX, colIX, currentLayerIX);
             if (spatialImgSelected) {
                 spatialImgs[rowIX][colIX][currentLayerIX].classList.add("visible");
                 visibleImgs.push(spatialImgs[rowIX][colIX][currentLayerIX]);
             }
             else {
-                let plotImg = plotImgs[rowIX][colIX][currentLayerIX][selectedPlotIX];
+                let plotImg = plotImgs[rowIX][colIX][currentLayerIX];
                 plotImg.classList.add("visible");
+                plotImg.classList.add("plot" + (selectedPlotIX + 1));
                 visibleImgs.push(plotImg);
             }
         }
@@ -262,6 +278,18 @@ function handleShowPlot2() {
     showPlot(1);
 }
 
+function handleShowPlot3() {
+    showPlot(2);
+}
+
+function handleShowPlot4() {
+    showPlot(3);
+}
+
+function handleShowPlot5() {
+    showPlot(4);
+}
+
 function handleSetLayer1() {
     setLayer(0);
 }
@@ -270,15 +298,23 @@ function handleSetLayer2() {
     setLayer(1);
 }
 
+function handleSetLayer3() {
+    setLayer(2);
+}
+
 // render the page
 createMatrixPage();
 let plotBtnHandlers = [
     handleShowPlot1,
     handleShowPlot2,
+    handleShowPlot3,
+    handleShowPlot4,
+    handleShowPlot5,
 ]
 let layerBtnHandlers = [
     handleSetLayer1,
     handleSetLayer2,
+    handleSetLayer3,
 ]
 spatialImgBtn = createSpatialImgBtn(handleShowSpatial);
 plotImgBtns = createPlotImgBtns(plotBtnHandlers);

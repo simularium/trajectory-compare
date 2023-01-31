@@ -12,16 +12,20 @@ h1 {
     margin-bottom: 50;
     font-size: 50px;
     font-weight: 200;
-    color: #d3d3d3;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: 400;
 }
 
 button {
     font-family: Overpass;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 400;
     background-color: #1e1b25;
     color: #8d87aa;
-    padding: 0px 20px;
+    padding: 10px;
     margin-right: 20px;
 }
 
@@ -35,13 +39,6 @@ button:hover {
     background-color: #8d87aa;
 }
 
-#layerBtns button {
-    margin-top: 50px;
-    font-size: 20px;
-    font-weight: 400;
-    padding: 20px;
-}
-
 #matrix {
     width: 10000px;
     height: 10000px;
@@ -51,7 +48,7 @@ button:hover {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     margin-top: 20px;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 600;
     color: #1e1b25;
 }
@@ -61,7 +58,7 @@ button:hover {
     overflow: hidden;
     border:1px solid #d3d3d3;
     width: 50px;
-    height: 250px;
+    height: 120px;
     float: left;
     text-align: center;
 }
@@ -78,7 +75,8 @@ button:hover {
     transform: rotate(270deg);
     transform-origin: 50% 50%;
     position: relative;
-    left: 115px;
+    left: 50px;
+    top: 20px;
 
     /* IE<9 */
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
@@ -93,12 +91,12 @@ button:hover {
     overflow: hidden;
     border:1px solid #d3d3d3;
     width: 250px;
-    height: 50px;
+    height: 35px;
     float: left;
     text-align: center;
     position: relative;
     left: 52px;
-    padding-top: 25px;
+    padding-top: 15px;
 }
 
 .cell {
@@ -106,34 +104,58 @@ button:hover {
     overflow: hidden;
     border:1px solid #d3d3d3;
     width: 250px;
-    height: 250px;
+    height: 120px;
     float: left;
     text-align: center;
 }
 
 .images {
-    height: 250px;
+    height: 120px;
     position: relative;
     display: inline-block;
     left: 50%;
     transform: translate(-50%);
-    background-color: pink;
     text-align: left;
     top: 0px;
 }
 
-.images img {
-    height: 250px;
+.spatialImg {
+    visibility: hidden;
+    position: absolute;
+    top: -10px;
+    left: 0px;
+    width: 250px;
 }
 
-.cellImg {
+.plotImg {
     visibility: hidden;
     position: absolute;
     top: 0px;
-    left: 0px;
+    left: -50px;
+    width: 150px;
 }
 
 .visible {
     position: relative;
     visibility: visible;
+}
+
+.plot1 {
+    top: -85px;
+}
+
+.plot2 {
+    top: -235px;
+}
+
+.plot3 {
+    top: -370px;
+}
+
+.plot4 {
+    top: -515px;
+}
+
+.plot5 {
+    top: -675px;
 }
