@@ -1,24 +1,25 @@
 // global vars
 let currentLayerIX = 0;
 let spatialImgSelected = true;
+let spatialZoomImgSelected = false;
 let selectedPlotIX = -1;
-let plotImgs = [];
-let spatialImgs = [];
+let images = [];
 let viewerLinks = [];
 let visibleImgs = [];
 let spatialImgBtn = null;
+let spatialZoomImgBtn = null;
 let plotImgBtns = null;
 let layerBtns = null;
 
 // page setup
 function setPageTitle() {
     let title = document.getElementById("title");
-    title.innerHTML = cellData["title"];
+    title.innerHTML = trajectoryData[0]["title"];
 }
 
 function createColTitles(matrix) {
-    let colVariable = cellData["colVariable"];
-    let colValues = cellData["colValues"];
+    let colVariable = trajectoryData[0]["variables"][trajectoryData[0]["colVariableIX"]];
+    let colValues = trajectoryData[0]["colValues"];
     for (let colIX = 0; colIX < colValues.length; colIX++) {
         let colTitle = document.createElement("div");
         colTitle.className = "colTitle";
@@ -34,80 +35,101 @@ function createRowTitle(rowIX, matrix) {
     matrix.appendChild(rowTitle);
     let rowTitleTxt = document.createElement("div");
     rowTitleTxt.className = "rowTitleTxt";
-    let rowVar = cellData["rowVariable"];
-    let rowValues = cellData["rowValues"];
-    rowTitleTxt.innerHTML = rowVar + " = " + rowValues[rowIX];
+    let rowVariable = trajectoryData[0]["variables"][trajectoryData[0]["rowVariableIX"]];
+    let rowValues = trajectoryData[0]["rowValues"];
+    rowTitleTxt.innerHTML = rowVariable + " = " + rowValues[rowIX];
     rowTitle.appendChild(rowTitleTxt);
 }
 
-function getViewerLink(rowIX, colIX, layerIX) {
-    let rowVar = cellData["rowVariable"][0];
-    let rowValues = cellData["rowValues"];
-    let colVar = cellData["colVariable"][0];
-    let colValues = cellData["colValues"];
-    let layerVar = cellData["layerVariable"][0];
-    let layerValues = cellData["layerValues"];
+function getLayerValue(layerVarIX, layerIX) {
+    let layerVariables = trajectoryData[0]["layerVariables"];
+    let currLayerNValues = layerVariables[layerVarIX]["values"].length;
+    if (layerVarIX + 1 >= layerVariables.length) {  // last layer variable
+        return layerIX % currLayerNValues;  
+    }
+    let nValues = 1;
+    for (let ix = layerVarIX + 1; ix < layerVariables.length; ix++) {
+        nValues *= layerVariables[ix]["values"].length;
+    }
+    if (layerVarIX === 0) {
+        let x = Math.floor(layerIX / nValues);
+        return x;
+    }
+    else {
+        return Math.floor((layerIX + 1) / nValues) % currLayerNValues;
+    }
+}
+
+function getFilenameVariableStr(rowIX, colIX, layerIX) {
+    let variables = trajectoryData[0]["variables"];
+    let result = Array(variables.length).fill("");
+    // row and col
+    let rowVarIX = trajectoryData[0]["rowVariableIX"]
+    let rowName = variables[rowVarIX][0].toLowerCase();
+    let rowValue = trajectoryData[0]["rowValues"][rowIX];
+    result[rowVarIX] = rowName + "=" + rowValue;
+    let colVarIX = trajectoryData[0]["colVariableIX"]
+    let colName = variables[colVarIX][0].toLowerCase();
+    let colValue = trajectoryData[0]["colValues"][colIX];
+    result[colVarIX] = colName + "=" + colValue;
+    // layers
+    let layerVariables = trajectoryData[0]["layerVariables"];
+    for (let ix = 0; ix < layerVariables.length; ix++) {
+        let varIX = layerVariables[ix]["ix"];
+        let name = variables[varIX][0].toLowerCase();
+        let valueIX = getLayerValue(ix, layerIX);
+        let value = layerVariables[ix]["values"][valueIX];
+        result[varIX] = name + "=" + value;
+    }
+    return result.join('_');
+}
+
+function getViewerHref(rowIX, colIX, layerIX) {
     return (
         "https://simularium.allencell.org/viewer?trajUrl=" + 
         "https://readdy-working-bucket.s3.us-west-2.amazonaws.com/" + 
-        "outputs/" + cellData["filePrefix"] + "_" + 
-        layerVar + "=" + layerValues[layerIX] + "_" + 
-        rowVar + "=" + rowValues[rowIX] + "_" + 
-        colVar + "=" + colValues[colIX] + "_0.h5.simularium"
+        "outputs/" + trajectoryData[0]["filePrefix"] + "_" + 
+        getFilenameVariableStr(rowIX, colIX, layerIX) + "_0.h5.simularium"
     );
 }
 
-function getImgSrc(rowIX, colIX, layerIX, spatialImg) {
-    let rowVar = cellData["rowVariable"][0];
-    let rowValues = cellData["rowValues"];
-    let colVar = cellData["colVariable"][0];
-    let colValues = cellData["colValues"];
-    let layerVar = cellData["layerVariable"][0];
-    let layerValues = cellData["layerValues"];
+function getImgSrc(rowIX, colIX, layerIX) {
     return (
-        "img/" + cellData["filePrefix"] + "/" +
-        (spatialImg ? "spatial/" : "plots/") +
-        layerVar + "=" + layerValues[layerIX] + "_" + 
-        rowVar + "=" + rowValues[rowIX] + "_" + 
-        colVar + "=" + colValues[colIX] + ".jpg"
+        "img/" + trajectoryData[0]["filePrefix"] + "/" +
+        trajectoryData[0]["filePrefix"] + "_" +
+        getFilenameVariableStr(rowIX, colIX, layerIX) + ".jpg"
     );
 }
 
-function createSpatialImg(rowIX, colIX, layerIX, selected, viewerLink) {
-    let spatialImg = document.createElement("img");
-    spatialImg.src = getImgSrc(rowIX, colIX, layerIX, true);
-    spatialImg.className = "spatialImg";
-    if (selected) {
-        viewerLink.href = getViewerLink(rowIX, colIX, layerIX);
-        spatialImg.classList.add("visible");
+function createImg(rowIX, colIX, layerIX, current, viewerLink) {
+    let newImg = document.createElement("img");
+    newImg.src = getImgSrc(rowIX, colIX, layerIX);
+    newImg.classList.add("image");
+    newImg.classList.add("spatial");
+    if (current) {
+        viewerLink.href = getViewerHref(rowIX, colIX, layerIX);
+        newImg.classList.add("visible");
     }
-    viewerLink.appendChild(spatialImg);
-    return spatialImg;
+    viewerLink.appendChild(newImg);
+    return newImg;
 }
 
-function createPlotImg(rowIX, colIX, layerIX, viewerLink) {
-    let plotImg = document.createElement("img");
-    plotImg.src = getImgSrc(rowIX, colIX, layerIX, false);
-    plotImg.classList.add("plotImg");
-    viewerLink.appendChild(plotImg);
-    return plotImg;
+function getNLayers() {
+    let layerVariables = trajectoryData[0]["layerVariables"];
+    let result = 1;
+    for (let ix = 0; ix < layerVariables.length; ix++) {
+        result *= layerVariables[ix]["values"].length;
+    }
+    return result;
 }
 
 function createCellImageLayers(rowIX, colIX, viewerLink) {
-    let layerValues = cellData["layerValues"];
-    for (let layerIX = 0; layerIX < layerValues.length; layerIX++) {
-        // spatial image
-        let spatialImg = createSpatialImg(
+    let nLayers = getNLayers();
+    for (let layerIX = 0; layerIX < nLayers; layerIX++) {
+        let newImg = createImg(
             rowIX, colIX, layerIX, layerIX === currentLayerIX, viewerLink
         );
-        spatialImgs[rowIX][colIX].push(spatialImg);
-        if (layerIX === currentLayerIX)
-        {
-            visibleImgs.push(spatialImg);
-        }
-        // plot image
-        let plotImg = createPlotImg(rowIX, colIX, layerIX, viewerLink);
-        plotImgs[rowIX][colIX].push(plotImg);
+        images[rowIX][colIX].push(newImg);
     }
 }
 
@@ -129,16 +151,14 @@ function createMatrixPage() {
     let matrix = document.getElementById("matrix");
     setPageTitle();
     createColTitles(matrix);
-    let rowValues = cellData["rowValues"];
-    let colValues = cellData["colValues"];
+    let rowValues = trajectoryData[0]["rowValues"];
+    let colValues = trajectoryData[0]["colValues"];
     for (let rowIX = 0; rowIX < rowValues.length; rowIX++) {
         viewerLinks.push([]);
-        plotImgs.push([]);
-        spatialImgs.push([]);
+        images.push([]);
         createRowTitle(rowIX, matrix);
         for (let colIX = 0; colIX < colValues.length; colIX++) {
-            plotImgs[rowIX].push([]);
-            spatialImgs[rowIX].push([]);
+            images[rowIX].push([]);
             let viewerLink = createCell(rowIX, colIX, matrix);
             viewerLinks[rowIX].push(viewerLink);
         }
@@ -157,9 +177,20 @@ function createSpatialImgBtn(handler) {
     return result;
 }
 
+function createSpatialZoomImgBtn(handler) {
+    let imgBtnsDiv = document.getElementById("imgBtns");
+    let result = document.createElement("button");
+    result.type = "button";
+    result.innerHTML = "spatial view (zoom)";
+    result.id = "spatialZoomBtn";
+    result.onclick = handler;
+    imgBtnsDiv.appendChild(result);
+    return result;
+}
+
 function createPlotImgBtns(handlers) {
     let imgBtnsDiv = document.getElementById("imgBtns");
-    let plotNames = cellData["plotNames"];
+    let plotNames = trajectoryData[0]["plotNames"];
     let result = [];
     for (let plotIX = 0; plotIX < plotNames.length; plotIX++) {
         let plotImgBtn = document.createElement("button");
@@ -173,18 +204,31 @@ function createPlotImgBtns(handlers) {
     return result;
 }
 
+function getLayerName(layerIX) {
+    let variables = trajectoryData[0]["variables"];
+    let layerVariables = trajectoryData[0]["layerVariables"];
+    let result = Array(layerVariables.length).fill("");
+    for (let ix = 0; ix < layerVariables.length; ix++) {
+        let varIX = layerVariables[ix]["ix"];
+        let name = variables[varIX];
+        let valueIX = getLayerValue(ix, layerIX);
+        let value = layerVariables[ix]["values"][valueIX];
+        result[ix] = name + " = " + value;
+    }
+    return result.join(', ');
+}
+
 function createLayerBtns(handlers) {
-    let layerBtnsDiv = document.getElementById("layerBtns");
     let result = [];
-    let layerVar = cellData["layerVariable"];
-    let layerValues = cellData["layerValues"];
-    for (let layerIX = 0; layerIX < layerValues.length; layerIX++) {
+    let layerBtnsDiv = document.getElementById("layerBtns");
+    let nLayers = getNLayers();
+    for (let layerIX = 0; layerIX < nLayers; layerIX++) {
         let layerBtn = document.createElement("button");
         if (layerIX === currentLayerIX) {
             layerBtn.classList.add("selected");
         }
         layerBtn.type = "button";
-        layerBtn.innerHTML = layerVar + " = " + layerValues[layerIX];
+        layerBtn.innerHTML = getLayerName(layerIX);
         layerBtn.id = "layerBtn" + (layerIX + 1);
         layerBtn.onclick = handlers[layerIX];
         layerBtnsDiv.appendChild(layerBtn);
@@ -196,6 +240,7 @@ function createLayerBtns(handlers) {
 // state updates
 function deselectImgBtns() {
     spatialImgBtn.classList.remove("selected");
+    spatialZoomImgBtn.classList.remove("selected");
     for (let plotIX = 0; plotIX < plotImgBtns.length; plotIX++) {
         plotImgBtns[plotIX].classList.remove("selected");
     }
@@ -207,24 +252,27 @@ function hideVisibleImages() {
         if (selectedPlotIX >= 0) {
             visibleImgs[imgIX].classList.remove("plot" + (selectedPlotIX + 1));
         }
+        else {
+            if (spatialImgSelected) {
+                visibleImgs[imgIX].classList.remove("spatial");
+            }
+            if (spatialZoomImgSelected) {
+                visibleImgs[imgIX].classList.remove("spatialZoom");
+            }
+        }
     }
     visibleImgs = [];
 }
 
 function showCurrentImgs() {
-    for (let rowIX = 0; rowIX < spatialImgs.length; rowIX++) {
-        for (let colIX = 0; colIX < spatialImgs[rowIX].length; colIX++) {
-            viewerLinks[rowIX][colIX].href = getViewerLink(rowIX, colIX, currentLayerIX);
-            if (spatialImgSelected) {
-                spatialImgs[rowIX][colIX][currentLayerIX].classList.add("visible");
-                visibleImgs.push(spatialImgs[rowIX][colIX][currentLayerIX]);
-            }
-            else {
-                let plotImg = plotImgs[rowIX][colIX][currentLayerIX];
-                plotImg.classList.add("visible");
-                plotImg.classList.add("plot" + (selectedPlotIX + 1));
-                visibleImgs.push(plotImg);
-            }
+    for (let rowIX = 0; rowIX < images.length; rowIX++) {
+        for (let colIX = 0; colIX < images[rowIX].length; colIX++) {
+            viewerLinks[rowIX][colIX].href = getViewerHref(rowIX, colIX, currentLayerIX);
+            currentImg = images[rowIX][colIX][currentLayerIX]
+            let newClass = spatialImgSelected ? "spatial" : spatialZoomImgSelected ? "spatialZoom" : "plot" + (selectedPlotIX + 1);
+            currentImg.classList.add(newClass);
+            currentImg.classList.add("visible");
+            visibleImgs.push(currentImg);
         }
     }
 }
@@ -234,6 +282,17 @@ function showSpatial() {
     spatialImgBtn.classList.add("selected");
     hideVisibleImages();
     spatialImgSelected = true;
+    spatialZoomImgSelected = false;
+    selectedPlotIX = -1;
+    showCurrentImgs();
+}
+
+function showSpatialZoom() {
+    deselectImgBtns();
+    spatialZoomImgBtn.classList.add("selected");
+    hideVisibleImages();
+    spatialImgSelected = false;
+    spatialZoomImgSelected = true;
     selectedPlotIX = -1;
     showCurrentImgs();
 }
@@ -243,6 +302,7 @@ function showPlot(plotIX) {
     plotImgBtns[plotIX].classList.add("selected");
     hideVisibleImages();
     spatialImgSelected = false;
+    spatialZoomImgSelected = false;
     selectedPlotIX = plotIX;
     showCurrentImgs();
 }
@@ -268,6 +328,10 @@ function setLayer(layerIX) {
 // The number of these should match the number of plots and layers
 function handleShowSpatial() {
     showSpatial();
+}
+
+function handleShowSpatialZoom() {
+    showSpatialZoom();
 }
 
 function handleShowPlot1() {
@@ -302,20 +366,30 @@ function handleSetLayer3() {
     setLayer(2);
 }
 
+function handleSetLayer4() {
+    setLayer(3);
+}
+
 // render the page
-createMatrixPage();
-let plotBtnHandlers = [
-    handleShowPlot1,
-    handleShowPlot2,
-    handleShowPlot3,
-    handleShowPlot4,
-    handleShowPlot5,
-]
-let layerBtnHandlers = [
-    handleSetLayer1,
-    handleSetLayer2,
-    handleSetLayer3,
-]
-spatialImgBtn = createSpatialImgBtn(handleShowSpatial);
-plotImgBtns = createPlotImgBtns(plotBtnHandlers);
-layerBtns = createLayerBtns(layerBtnHandlers);
+function main() {
+    createMatrixPage();
+    let plotBtnHandlers = [
+        handleShowPlot1,
+        handleShowPlot2,
+        handleShowPlot3,
+        handleShowPlot4,
+        handleShowPlot5,
+    ]
+    let layerBtnHandlers = [
+        handleSetLayer1,
+        handleSetLayer2,
+        handleSetLayer3,
+        handleSetLayer4,
+    ]
+    spatialImgBtn = createSpatialImgBtn(handleShowSpatial);
+    spatialZoomImgBtn = createSpatialZoomImgBtn(handleShowSpatialZoom);
+    plotImgBtns = createPlotImgBtns(plotBtnHandlers);
+    layerBtns = createLayerBtns(layerBtnHandlers);
+}
+
+main();

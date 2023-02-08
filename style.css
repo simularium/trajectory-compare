@@ -35,7 +35,7 @@ button:hover {
 }
 
 .selected {
-    color: #4d0be6;
+    color: #1e1b25;
     background-color: #8d87aa;
 }
 
@@ -100,11 +100,11 @@ button:hover {
 }
 
 .cell {
-    background-color: #1e1b25;
+    background-color: #000000;
     overflow: hidden;
     border:1px solid #3b344c;
     width: 250px;
-    height: 120px;
+    height: 200px;
     float: left;
     text-align: center;
 }
@@ -119,43 +119,56 @@ button:hover {
     top: 0px;
 }
 
-.spatialImg {
-    visibility: hidden;
+.images img {
     position: absolute;
-    top: -10px;
-    left: 0px;
-    width: 250px;
 }
 
-.plotImg {
+.image {
     visibility: hidden;
-    position: absolute;
-    top: 0px;
-    left: -50px;
-    width: 150px;
 }
 
 .visible {
-    position: relative;
     visibility: visible;
 }
 
+.spatial {
+    top: -144px;
+    left: -325px;
+    width: 400px;
+}
+
+.spatialZoom {
+    top: -880px;
+    left: -1250px;
+    width: 1600px;
+}
+
 .plot1 {
-    top: -85px;
+    top: -215px;
+    left: -1587px;
+    width: 1600px;
 }
 
 .plot2 {
-    top: -235px;
+    top: -537px;
+    left: -1587px;
+    width: 1600px;
 }
 
 .plot3 {
-    top: -370px;
+    top: -858px;
+    left: -1587px;
+    width: 1600px;
 }
 
 .plot4 {
-    top: -515px;
+    top: -1179px;
+    left: -1587px;
+    width: 1600px;
 }
 
 .plot5 {
-    top: -675px;
+    top: -1518px;
+    left: -1587px;
+    width: 1600px;
 }
