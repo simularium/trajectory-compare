@@ -30,6 +30,7 @@ var trajectoryData = [
             "100",
             "500",
             "1000",
+            "5000",
         ],
         "colVariableIX" : 2,
         "colValues" : [
@@ -37,6 +38,7 @@ var trajectoryData = [
             "100",
             "500",
             "1000",
+            "5000",
         ],
         "plotNames" : [  // max = 5
             "Total filament axis twist",
