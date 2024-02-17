@@ -1,0 +1,41 @@
+.spatial {
+    top: -144px;
+    left: -325px;
+    width: 400px;
+}
+
+.spatialZoom {
+    top: -880px;
+    left: -1250px;
+    width: 1600px;
+}
+
+.plot1 {
+    top: -215px;
+    left: -1587px;
+    width: 1600px;
+}
+
+.plot2 {
+    top: -537px;
+    left: -1587px;
+    width: 1600px;
+}
+
+.plot3 {
+    top: -858px;
+    left: -1587px;
+    width: 1600px;
+}
+
+.plot4 {
+    top: -1179px;
+    left: -1587px;
+    width: 1600px;
+}
+
+.plot5 {
+    top: -1518px;
+    left: -1587px;
+    width: 1600px;
+}
