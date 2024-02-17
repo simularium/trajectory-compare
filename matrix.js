@@ -365,6 +365,10 @@ function handleSetLayer4() {
     setLayer(3);
 }
 
+function handleSetLayer5() {
+    setLayer(4);
+}
+
 // render the page
 function main() {
     createMatrixPage();
@@ -380,6 +384,7 @@ function main() {
         handleSetLayer2,
         handleSetLayer3,
         handleSetLayer4,
+        handleSetLayer5,
     ]
     spatialImgBtn = createSpatialImgBtn(handleShowSpatial);
     if (matrixData["zoom"]) {
