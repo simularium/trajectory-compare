@@ -84,15 +84,6 @@ function getFilenameVariableStr(rowIX, colIX, layerIX) {
     return result.join('_');
 }
 
-function getViewerHref(rowIX, colIX, layerIX) {
-    return (
-        "https://simularium.allencell.org/viewer?trajUrl=" + 
-        "https://readdy-working-bucket.s3.us-west-2.amazonaws.com/" + 
-        "outputs/" + matrixData["filePrefix"] + "_" + 
-        getFilenameVariableStr(rowIX, colIX, layerIX) + "_0.h5.simularium"
-    );
-}
-
 function getImgSrc(rowIX, colIX, layerIX) {
     return (
         "../img/" + matrixData["filePrefix"] + "/" +
@@ -240,7 +231,9 @@ function createLayerBtns(handlers) {
 // state updates
 function deselectImgBtns() {
     spatialImgBtn.classList.remove("selected");
-    spatialZoomImgBtn.classList.remove("selected");
+    if (matrixData["zoom"]) {
+        spatialZoomImgBtn.classList.remove("selected");
+    }
     for (let plotIX = 0; plotIX < plotImgBtns.length; plotIX++) {
         plotImgBtns[plotIX].classList.remove("selected");
     }
@@ -289,7 +282,9 @@ function showSpatial() {
 
 function showSpatialZoom() {
     deselectImgBtns();
-    spatialZoomImgBtn.classList.add("selected");
+    if (matrixData["zoom"]) {
+        spatialZoomImgBtn.classList.add("selected");
+    }
     hideVisibleImages();
     spatialImgSelected = false;
     spatialZoomImgSelected = true;

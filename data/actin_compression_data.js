@@ -2,7 +2,7 @@ var matrixData = {
     "title" : "Actin Compression Matrix",
     "filePrefix" : "actin_compression_matrix",
     "variables" : [  // in the order they are in the file name
-        "simulator",
+        "sim",
         "velocity",
         "repeat",
     ],
@@ -21,8 +21,8 @@ var matrixData = {
     ],
     "rowVariableIX" : 0,
     "rowValues" : [
-        "Cytosim",
-        "ReaDDy",
+        "cytosim",
+        "readdy",
     ],
     "colVariableIX" : 1,
     "colValues" : [

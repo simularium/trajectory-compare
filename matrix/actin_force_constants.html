@@ -9,6 +9,18 @@
     <div id="imgBtns"><h2>Select a view:</h2></div>
     <div id="layerBtns"><h2>Layers:</h2></div>
     <div id="matrix"></div>
+    <script language="JavaScript" type="text/javascript">
+
+        function getViewerHref(rowIX, colIX, layerIX) {
+            return (
+                "https://simularium.allencell.org/viewer?trajUrl=" + 
+                "https://readdy-working-bucket.s3.us-west-2.amazonaws.com/" + 
+                "outputs/" + matrixData["filePrefix"] + "_" + 
+                getFilenameVariableStr(rowIX, colIX, layerIX) + "_0.h5.simularium"
+            );
+        }
+
+    </script>
     <script language="JavaScript" type="text/javascript" src="../data/actin_force_constants_data.js"></script>
     <script language="JavaScript" type="text/javascript" src="../matrix.js"></script>
 </html>

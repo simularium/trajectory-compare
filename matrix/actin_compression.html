@@ -9,6 +9,51 @@
     <div id="imgBtns"><h2>Select a view:</h2></div>
     <div id="layerBtns"><h2>Layers:</h2></div>
     <div id="matrix"></div>
+    <script language="JavaScript" type="text/javascript">
+
+        function getSimulatorName(rowIX) {
+            return matrixData["rowValues"][rowIX];
+        }
+
+        function getDirectoryName(rowIX) {
+            if (rowIX < 1) {
+                return "simularium"
+            }
+            else {
+                return "outputs"
+            }
+        }
+
+        function getConditionName(colIX) {
+            let colValue = matrixData["colValues"][colIX];
+            if (colValue === "0") {
+                return "baseline"
+            }
+            return "velocity=" + colValue;
+        }
+
+        function getFileExt(rowIX) {
+            if (rowIX < 1) {
+                return ".simularium"
+            }
+            else {
+                return ".h5.simularium"
+            }
+        }
+
+        function getViewerHref(rowIX, colIX, layerIX) {
+            let simName = getSimulatorName(rowIX)
+            let dirName = getDirectoryName(rowIX)
+            let condName = getConditionName(colIX)
+            let fileExt = getFileExt(rowIX)
+            return (
+                "https://simularium.allencell.org/viewer?trajUrl=" + 
+                "https://" + simName + "-working-bucket.s3.us-west-2.amazonaws.com/" + 
+                dirName + "/actin_compression_" + condName + "_" + layerIX + fileExt
+            );
+        }
+
+    </script>
     <script language="JavaScript" type="text/javascript" src="../data/actin_compression_data.js"></script>
     <script language="JavaScript" type="text/javascript" src="../matrix.js"></script>
 </html>
