@@ -14,12 +14,12 @@ let layerBtns = null;
 // page setup
 function setPageTitle() {
     let title = document.getElementById("title");
-    title.innerHTML = trajectoryData[0]["title"];
+    title.innerHTML = matrixData["title"];
 }
 
 function createColTitles(matrix) {
-    let colVariable = trajectoryData[0]["variables"][trajectoryData[0]["colVariableIX"]];
-    let colValues = trajectoryData[0]["colValues"];
+    let colVariable = matrixData["variables"][matrixData["colVariableIX"]];
+    let colValues = matrixData["colValues"];
     for (let colIX = 0; colIX < colValues.length; colIX++) {
         let colTitle = document.createElement("div");
         colTitle.className = "colTitle";
@@ -35,14 +35,14 @@ function createRowTitle(rowIX, matrix) {
     matrix.appendChild(rowTitle);
     let rowTitleTxt = document.createElement("div");
     rowTitleTxt.className = "rowTitleTxt";
-    let rowVariable = trajectoryData[0]["variables"][trajectoryData[0]["rowVariableIX"]];
-    let rowValues = trajectoryData[0]["rowValues"];
+    let rowVariable = matrixData["variables"][matrixData["rowVariableIX"]];
+    let rowValues = matrixData["rowValues"];
     rowTitleTxt.innerHTML = rowVariable + " = " + rowValues[rowIX];
     rowTitle.appendChild(rowTitleTxt);
 }
 
 function getLayerValue(layerVarIX, layerIX) {
-    let layerVariables = trajectoryData[0]["layerVariables"];
+    let layerVariables = matrixData["layerVariables"];
     let currLayerNValues = layerVariables[layerVarIX]["values"].length;
     if (layerVarIX + 1 >= layerVariables.length) {  // last layer variable
         return layerIX % currLayerNValues;  
@@ -61,19 +61,19 @@ function getLayerValue(layerVarIX, layerIX) {
 }
 
 function getFilenameVariableStr(rowIX, colIX, layerIX) {
-    let variables = trajectoryData[0]["variables"];
+    let variables = matrixData["variables"];
     let result = Array(variables.length).fill("");
     // row and col
-    let rowVarIX = trajectoryData[0]["rowVariableIX"]
+    let rowVarIX = matrixData["rowVariableIX"]
     let rowName = variables[rowVarIX][0].toLowerCase();
-    let rowValue = trajectoryData[0]["rowValues"][rowIX];
+    let rowValue = matrixData["rowValues"][rowIX];
     result[rowVarIX] = rowName + "=" + rowValue;
-    let colVarIX = trajectoryData[0]["colVariableIX"]
+    let colVarIX = matrixData["colVariableIX"]
     let colName = variables[colVarIX][0].toLowerCase();
-    let colValue = trajectoryData[0]["colValues"][colIX];
+    let colValue = matrixData["colValues"][colIX];
     result[colVarIX] = colName + "=" + colValue;
     // layers
-    let layerVariables = trajectoryData[0]["layerVariables"];
+    let layerVariables = matrixData["layerVariables"];
     for (let ix = 0; ix < layerVariables.length; ix++) {
         let varIX = layerVariables[ix]["ix"];
         let name = variables[varIX][0].toLowerCase();
@@ -88,15 +88,15 @@ function getViewerHref(rowIX, colIX, layerIX) {
     return (
         "https://simularium.allencell.org/viewer?trajUrl=" + 
         "https://readdy-working-bucket.s3.us-west-2.amazonaws.com/" + 
-        "outputs/" + trajectoryData[0]["filePrefix"] + "_" + 
+        "outputs/" + matrixData["filePrefix"] + "_" + 
         getFilenameVariableStr(rowIX, colIX, layerIX) + "_0.h5.simularium"
     );
 }
 
 function getImgSrc(rowIX, colIX, layerIX) {
     return (
-        "img/" + trajectoryData[0]["filePrefix"] + "/" +
-        trajectoryData[0]["filePrefix"] + "_" +
+        "../img/" + matrixData["filePrefix"] + "/" +
+        matrixData["filePrefix"] + "_" +
         getFilenameVariableStr(rowIX, colIX, layerIX) + ".jpg"
     );
 }
@@ -115,7 +115,7 @@ function createImg(rowIX, colIX, layerIX, current, viewerLink) {
 }
 
 function getNLayers() {
-    let layerVariables = trajectoryData[0]["layerVariables"];
+    let layerVariables = matrixData["layerVariables"];
     let result = 1;
     for (let ix = 0; ix < layerVariables.length; ix++) {
         result *= layerVariables[ix]["values"].length;
@@ -151,8 +151,8 @@ function createMatrixPage() {
     let matrix = document.getElementById("matrix");
     setPageTitle();
     createColTitles(matrix);
-    let rowValues = trajectoryData[0]["rowValues"];
-    let colValues = trajectoryData[0]["colValues"];
+    let rowValues = matrixData["rowValues"];
+    let colValues = matrixData["colValues"];
     for (let rowIX = 0; rowIX < rowValues.length; rowIX++) {
         viewerLinks.push([]);
         images.push([]);
@@ -190,7 +190,7 @@ function createSpatialZoomImgBtn(handler) {
 
 function createPlotImgBtns(handlers) {
     let imgBtnsDiv = document.getElementById("imgBtns");
-    let plotNames = trajectoryData[0]["plotNames"];
+    let plotNames = matrixData["plotNames"];
     let result = [];
     for (let plotIX = 0; plotIX < plotNames.length; plotIX++) {
         let plotImgBtn = document.createElement("button");
@@ -205,8 +205,8 @@ function createPlotImgBtns(handlers) {
 }
 
 function getLayerName(layerIX) {
-    let variables = trajectoryData[0]["variables"];
-    let layerVariables = trajectoryData[0]["layerVariables"];
+    let variables = matrixData["variables"];
+    let layerVariables = matrixData["layerVariables"];
     let result = Array(layerVariables.length).fill("");
     for (let ix = 0; ix < layerVariables.length; ix++) {
         let varIX = layerVariables[ix]["ix"];
@@ -387,7 +387,9 @@ function main() {
         handleSetLayer4,
     ]
     spatialImgBtn = createSpatialImgBtn(handleShowSpatial);
-    spatialZoomImgBtn = createSpatialZoomImgBtn(handleShowSpatialZoom);
+    if (matrixData["zoom"]) {
+        spatialZoomImgBtn = createSpatialZoomImgBtn(handleShowSpatialZoom);
+    }
     plotImgBtns = createPlotImgBtns(plotBtnHandlers);
     layerBtns = createLayerBtns(layerBtnHandlers);
 }
